@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:overworld",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:plains",
+      "lakes": true,
+      "features": true,
+      "layers": [
+        {
+          "block": "minecraft:stone",
+          "height": 70
+        }
+      ],
+      "structures": {
+        "structures": {
+          "minecraft:village": {
+            "spacing": 10,
+            "separation": 5,
+            "salt": 0
+          }
+        }
+      }
+    }
+  }
+}

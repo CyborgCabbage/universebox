@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "universebox",
+  "version": "${version}",
+
+  "name": "Universe Box",
+  "description": "It's a little universe in a box",
+  "authors": [
+    "CyborgCabbage"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/universebox/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "cyborgcabbage.universebox.UniverseBox"
+    ],
+    "client": [
+      "cyborgcabbage.universebox.client.UniverseBoxClient"
+    ]
+  },
+  "mixins": [
+    "modid.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.18.x",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
