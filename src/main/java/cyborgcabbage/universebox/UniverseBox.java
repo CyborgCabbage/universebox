@@ -43,7 +43,7 @@ public class UniverseBox implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("universebox");
     public static final String MODID = "universebox";
 
-    public static final Block UNIVERSE_BOX_BLOCK = new UniverseBoxBlock(FabricBlockSettings.of(Material.METAL).strength(4.0f));
+    public static final Block UNIVERSE_BOX_BLOCK = new UniverseBoxBlock(FabricBlockSettings.of(Material.METAL).strength(4.0f).luminance(state -> 10));
     public static BlockEntityType<UniverseBoxBlockEntity> UNIVERSE_BOX_BLOCK_ENTITY;
 
     public static final RegistryKey<World> POCKET_DIMENSION = RegistryKey.of(Registry.WORLD_KEY, new Identifier("universebox","pocket_dimension"));
@@ -59,7 +59,7 @@ public class UniverseBox implements ModInitializer {
     );
 
     public static final Block REALITY_WALL_BLOCK = new Block(FabricBlockSettings.of(Material.STONE).strength(-1.0f, 3600000.0f).dropsNothing().allowsSpawning((a, b, c, d) -> false));
-    public static final Block UNIVERSE_BOX_OPPOSITE_BLOCK = new UniverseBoxOppositeBlock(FabricBlockSettings.of(Material.METAL).strength(-1.0f, 3600000.0f).dropsNothing());
+    public static final Block UNIVERSE_BOX_OPPOSITE_BLOCK = new UniverseBoxOppositeBlock(FabricBlockSettings.of(Material.METAL).strength(-1.0f, 3600000.0f).dropsNothing().luminance(state -> 10));
     @Override
     public void onInitialize() {
         //Universe Box Block
