@@ -8,7 +8,6 @@ import net.minecraft.structure.PoolStructurePiece;
 import net.minecraft.structure.PostPlacementProcessor;
 import net.minecraft.structure.StructureGeneratorFactory;
 import net.minecraft.structure.StructurePiecesGenerator;
-import net.minecraft.structure.pool.StructurePoolBasedGenerator;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.math.BlockPos;

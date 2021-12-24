@@ -6,15 +6,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import qouteall.imm_ptl.core.dimension_sync.DimId;
 import qouteall.imm_ptl.core.portal.Portal;
-import qouteall.q_misc_util.Helper;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class DependentPortal extends Portal {
     private int parentPosX;

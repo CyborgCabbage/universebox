@@ -1,9 +1,6 @@
 package cyborgcabbage.universebox.pocket;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.world.ForcedChunkState;
 import net.minecraft.world.PersistentState;
 
 public class PocketState extends PersistentState {

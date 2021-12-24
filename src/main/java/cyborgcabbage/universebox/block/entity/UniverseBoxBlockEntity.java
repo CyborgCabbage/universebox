@@ -9,7 +9,6 @@ import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import qouteall.imm_ptl.core.dimension_sync.DimId;
 
-import java.rmi.registry.Registry;
 import java.util.UUID;
 
 public class UniverseBoxBlockEntity extends BlockEntity {

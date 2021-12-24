@@ -1,7 +1,5 @@
 package cyborgcabbage.universebox;
 
-import com.mojang.serialization.Codec;
-import cyborgcabbage.universebox.block.RealityWallBlock;
 import cyborgcabbage.universebox.block.UniverseBoxBlock;
 import cyborgcabbage.universebox.block.UniverseBoxOppositeBlock;
 import cyborgcabbage.universebox.block.entity.UniverseBoxBlockEntity;
@@ -15,7 +13,8 @@ import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
@@ -26,18 +25,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.util.registry.SimpleRegistry;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.dimension.DimensionOptions;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
-import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import qouteall.imm_ptl.core.portal.Portal;
-import qouteall.q_misc_util.api.DimensionAPI;
 
 public class UniverseBox implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("universebox");

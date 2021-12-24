@@ -1,6 +1,5 @@
 package cyborgcabbage.universebox.block;
 
-import com.sun.jna.platform.win32.WinNT;
 import cyborgcabbage.universebox.UniverseBox;
 import cyborgcabbage.universebox.block.entity.UniverseBoxBlockEntity;
 import cyborgcabbage.universebox.pocket.PocketState;
@@ -20,15 +19,8 @@ import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.core.jmx.Server;
-import qouteall.imm_ptl.core.IPGlobal;
-import qouteall.imm_ptl.core.api.PortalAPI;
-import qouteall.imm_ptl.core.portal.Portal;
-import qouteall.imm_ptl.core.portal.nether_portal.BreakablePortalEntity;
 
-import java.util.Random;
 import java.util.UUID;
 
 public class UniverseBoxBlock extends Block implements BlockEntityProvider {
