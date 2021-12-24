@@ -133,8 +133,8 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
         if(world instanceof ServerWorld serverWorld) {
             //Remove portals
             UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
-            removePortal(world, blockEntity.innerDimension, blockEntity.innerPortalUuid);
-            removePortal(world, blockEntity.outerDimension, blockEntity.outerPortalUuid);
+            //removePortal(world, blockEntity.innerDimension, blockEntity.innerPortalUuid);
+            //removePortal(world, blockEntity.outerDimension, blockEntity.outerPortalUuid);
         }
     }
 

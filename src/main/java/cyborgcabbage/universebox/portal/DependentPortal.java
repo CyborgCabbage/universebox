@@ -43,12 +43,12 @@ public class DependentPortal extends Portal {
         super.tick();
         if(!world.isClient) {
             if(dataInvalid) {
-                UniverseBox.LOGGER.warn("Removing Portal (Self)");
+                /*UniverseBox.LOGGER.warn("Removing Portal (Self)");
                 UniverseBox.LOGGER.warn("parentPosX: "+parentPosX);
                 UniverseBox.LOGGER.warn("parentPosY: "+parentPosY);
                 UniverseBox.LOGGER.warn("parentPosZ: "+parentPosZ);
                 UniverseBox.LOGGER.warn("parentDimension: "+parentDimension);
-                UniverseBox.LOGGER.warn("Data invalid, portal was removed");
+                UniverseBox.LOGGER.warn("Data invalid, portal was removed");*/
                 remove(Entity.RemovalReason.KILLED);
             }
             //Remove the portal if there is not a corresponding block-entity that has its UUID
@@ -71,14 +71,14 @@ public class DependentPortal extends Portal {
                     }else{
                         //UniverseBox.LOGGER.warn("No parent found at " + parentPosX + " " + parentPosY + " " + parentPosZ + " in " + parentDimension + " so the portal was removed");
                         //remove(Entity.RemovalReason.KILLED);
-                        System.out.println("No block-entity");
+                        //System.out.println("No block-entity");
                         dataInvalid = true;
                     }
                 }
             }else{
                 //UniverseBox.LOGGER.warn("World is null so the portal was removed");
                 //remove(Entity.RemovalReason.KILLED);
-                System.out.println("No world");
+                //System.out.println("No world");
                 dataInvalid = true;
             }
         }
