@@ -30,7 +30,7 @@ public class PocketStructure extends StructureFeature<StructurePoolFeatureConfig
                         if (!PocketStructure.canGenerate(context)) {
                             return Optional.empty();
                         }
-                        // Create the pieces layout of the structure and give it to
+                        // Create the pieces' layout of the structure and give it to
                         else {
                             return PocketStructure.createPiecesGenerator(context);
                         }
@@ -128,7 +128,7 @@ public class PocketStructure extends StructureFeature<StructurePoolFeatureConfig
                     // This is why your pool files must be in "data/<modid>/worldgen/template_pool/<the path to the pool here>"
                     // because the game automatically will check in worldgen/template_pool for the pools.
                     () -> context.registryManager().get(Registry.STRUCTURE_POOL_KEY)
-                            .get(new Identifier(UniverseBox.MODID, "pocket_pool")),
+                            .get(new Identifier(UniverseBox.MODID, "pocket/start")),
 
                     // How many pieces outward from center can a recursive jigsaw structure spawn.
                     // Our structure is only 1 piece outward and isn't recursive so any value of 1 or more doesn't change anything.
@@ -151,7 +151,7 @@ public class PocketStructure extends StructureFeature<StructurePoolFeatureConfig
             );
 
             Optional<StructurePiecesGenerator<StructurePoolFeatureConfig>> structurePiecesGenerator =
-                    StructurePoolBasedGenerator.generate(
+                    MyStructurePoolBasedGenerator.generate(
                             newContext, // Used for StructurePoolBasedGenerator to get all the proper behaviors done.
                             PoolStructurePiece::new, // Needed in order to create a list of jigsaw pieces when making the structure's layout.
                             blockpos, // Position of the structure. Y value is ignored if last parameter is set to true.

@@ -63,12 +63,12 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
             RegistryKey<World> innerDimension = UniverseBox.POCKET_DIMENSION;
             RegistryKey<World> outerDimension = world.getRegistryKey();
 
-            Random random = world.getRandom();
-            int randomX = random.nextInt(-1_000_000,1_000_000);
-            int randomZ = random.nextInt(-1_000_000,1_000_000);
+            int ipX = pocketId*16+8;
+            int ipY = 64;
+            int ipZ = 8;
 
             Vec3d outerPortalPos = new Vec3d(pos.getX()+0.5, pos.getY()+PORTAL_VERTICAL_OFFSET, pos.getZ()+0.5);
-            Vec3d innerPortalPos = new Vec3d(randomX+0.5, 64+PORTAL_VERTICAL_OFFSET, randomZ+0.5);
+            Vec3d innerPortalPos = new Vec3d(ipX+0.5, ipY+PORTAL_VERTICAL_OFFSET, ipZ+0.5);
 
             /*System.out.println("INNER PROTAL POSITION");
             System.out.println(new Vec3d(randomX+0.5, 64+PORTAL_VERTICAL_OFFSET, randomZ+0.5));*/
