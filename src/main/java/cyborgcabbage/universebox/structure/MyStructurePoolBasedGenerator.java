@@ -113,7 +113,7 @@ public class MyStructurePoolBasedGenerator {
             structurePoolGenerator.structurePieces.addLast(
                     new ShapedPoolStructurePiece(
                             poolStructurePiece,
-                            new MutableObject<VoxelShape>(
+                            new MutableObject<>(
                                     VoxelShapes.combineAndSimplify(
                                             VoxelShapes.cuboid(box),
                                             VoxelShapes.cuboid(Box.from(blockBox)),
@@ -134,15 +134,15 @@ public class MyStructurePoolBasedGenerator {
     public static void generate(DynamicRegistryManager registryManager, PoolStructurePiece piece, int maxDepth, PieceFactory pieceFactory, ChunkGenerator chunkGenerator, StructureManager structureManager, List<? super PoolStructurePiece> results, Random random, HeightLimitView world) {
         Registry<StructurePool> registry = registryManager.get(Registry.STRUCTURE_POOL_KEY);
         StructurePoolGenerator structurePoolGenerator = new StructurePoolGenerator(registry, maxDepth, pieceFactory, chunkGenerator, structureManager, results, random);
-        structurePoolGenerator.structurePieces.addLast(new ShapedPoolStructurePiece(piece, new MutableObject<VoxelShape>(VoxelShapes.UNBOUNDED), 0));
+        structurePoolGenerator.structurePieces.addLast(new ShapedPoolStructurePiece(piece, new MutableObject<>(VoxelShapes.UNBOUNDED), 0));
         while (!structurePoolGenerator.structurePieces.isEmpty()) {
             ShapedPoolStructurePiece shapedPoolStructurePiece = structurePoolGenerator.structurePieces.removeFirst();
             structurePoolGenerator.generatePiece(shapedPoolStructurePiece.piece, shapedPoolStructurePiece.pieceShape, shapedPoolStructurePiece.currentSize, false, world);
         }
     }
 
-    public static interface PieceFactory {
-        public PoolStructurePiece create(StructureManager var1, StructurePoolElement var2, BlockPos var3, int var4, BlockRotation var5, BlockBox var6);
+    public interface PieceFactory {
+        PoolStructurePiece create(StructureManager var1, StructurePoolElement var2, BlockPos var3, int var4, BlockRotation var5, BlockBox var6);
     }
 
     static final class StructurePoolGenerator {
@@ -171,7 +171,7 @@ public class MyStructurePoolBasedGenerator {
             BlockRotation blockRotation = piece.getRotation();
             StructurePool.Projection projection = structurePoolElement.getProjection();
             boolean bl = projection == StructurePool.Projection.RIGID;
-            MutableObject<VoxelShape> mutableObject = new MutableObject<VoxelShape>();
+            MutableObject<VoxelShape> mutableObject = new MutableObject<>();
             BlockBox blockBox = piece.getBoundingBox();
             int i = blockBox.getMinY();
             block0: for (Structure.StructureBlockInfo structureBlockInfo2 : structurePoolElement.getStructureBlockInfos(this.structureManager, blockPos, blockRotation, this.random)) {
@@ -184,14 +184,14 @@ public class MyStructurePoolBasedGenerator {
                 int k = -1;
                 Identifier identifier = new Identifier(structureBlockInfo2.nbt.getString("pool"));
                 Optional<StructurePool> optional = this.registry.getOrEmpty(identifier);
-                if (!optional.isPresent() || optional.get().getElementCount() == 0 && !Objects.equals(identifier, StructurePools.EMPTY.getValue())) {
-                    LOGGER.warn("Empty or non-existent pool: {}", (Object)identifier);
+                if (optional.isEmpty() || optional.get().getElementCount() == 0 && !Objects.equals(identifier, StructurePools.EMPTY.getValue())) {
+                    LOGGER.warn("Empty or non-existent pool: {}", identifier);
                     continue;
                 }
                 Identifier identifier2 = optional.get().getTerminatorsId();
                 Optional<StructurePool> optional2 = this.registry.getOrEmpty(identifier2);
-                if (!optional2.isPresent() || optional2.get().getElementCount() == 0 && !Objects.equals(identifier2, StructurePools.EMPTY.getValue())) {
-                    LOGGER.warn("Empty or non-existent fallback pool: {}", (Object)identifier2);
+                if (optional2.isEmpty() || optional2.get().getElementCount() == 0 && !Objects.equals(identifier2, StructurePools.EMPTY.getValue())) {
+                    LOGGER.warn("Empty or non-existent fallback pool: {}", identifier2);
                     continue;
                 }
                 boolean bl2 = blockBox.contains(blockPos3);
@@ -208,7 +208,7 @@ public class MyStructurePoolBasedGenerator {
                     list.addAll(optional.get().getElementIndicesInRandomOrder(this.random));
                 }
                 list.addAll(optional2.get().getElementIndicesInRandomOrder(this.random));
-                Iterator iterator = list.iterator();
+                Iterator<StructurePoolElement> iterator = list.iterator();
                 while (iterator.hasNext() && (structurePoolElement2 = (StructurePoolElement)iterator.next()) != EmptyPoolElement.INSTANCE) {
                     for (BlockRotation blockRotation2 : BlockRotation.randomRotationOrder(this.random)) {
                         List<Structure.StructureBlockInfo> list2 = structurePoolElement2.getStructureBlockInfos(this.structureManager, BlockPos.ORIGIN, blockRotation2, this.random);
