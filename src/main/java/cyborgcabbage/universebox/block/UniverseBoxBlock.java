@@ -101,6 +101,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
             blockEntity.innerPortalUuid = innerPortal.getUuid();
             blockEntity.outerDimension = outerDimension;
             blockEntity.innerDimension = innerDimension;
+            blockEntity.pocketIndex = pocketId;
             blockEntity.markDirty();
         }
     }

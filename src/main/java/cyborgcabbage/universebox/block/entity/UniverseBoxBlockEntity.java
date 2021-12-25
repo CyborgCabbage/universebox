@@ -16,6 +16,7 @@ public class UniverseBoxBlockEntity extends BlockEntity {
     public UUID innerPortalUuid;
     public RegistryKey<World> outerDimension;
     public RegistryKey<World> innerDimension;
+    public int pocketIndex;
 
     public UniverseBoxBlockEntity(BlockPos pos, BlockState state) {
         super(UniverseBox.UNIVERSE_BOX_BLOCK_ENTITY, pos, state);
@@ -39,6 +40,7 @@ public class UniverseBoxBlockEntity extends BlockEntity {
         tag.putUuid("InnerPortalUUID", innerPortalUuid);
         DimId.putWorldId(tag,"OuterDimension", outerDimension);
         DimId.putWorldId(tag,"InnerDimension", innerDimension);
+        tag.putInt("PocketIndex", pocketIndex);
     }
 
     // Deserialize the BlockEntity
@@ -49,7 +51,6 @@ public class UniverseBoxBlockEntity extends BlockEntity {
         innerPortalUuid = tag.getUuid("InnerPortalUUID");
         outerDimension = DimId.getWorldId(tag,"OuterDimension", false);
         innerDimension = DimId.getWorldId(tag,"InnerDimension", false);
+        pocketIndex = tag.getInt("PocketIndex");
     }
-
-
 }
