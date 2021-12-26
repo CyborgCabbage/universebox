@@ -13,6 +13,7 @@ import java.util.UUID;
 
 public class UniverseBoxBlockEntity extends BlockEntity {
     public int pocketIndex = -1;
+    public static final String TAG = "PocketIndex";
 
     public UniverseBoxBlockEntity(BlockPos pos, BlockState state) {
         super(UniverseBox.UNIVERSE_BOX_BLOCK_ENTITY, pos, state);
@@ -21,12 +22,12 @@ public class UniverseBoxBlockEntity extends BlockEntity {
     @Override
     public void writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
-        tag.putInt("PocketIndex", pocketIndex);
+        tag.putInt(TAG, pocketIndex);
     }
 
     @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
-        pocketIndex = tag.getInt("PocketIndex");
+        pocketIndex = tag.getInt(TAG);
     }
 }

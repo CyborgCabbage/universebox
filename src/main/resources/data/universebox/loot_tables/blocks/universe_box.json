@@ -6,6 +6,19 @@
       "entries": [
         {
           "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "PocketIndex",
+                  "target": "BlockEntityTag.PocketIndex",
+                  "op": "replace"
+                }
+              ]
+            }
+          ],
           "name": "universebox:universe_box"
         }
       ],
