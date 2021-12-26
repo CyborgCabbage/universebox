@@ -19,24 +19,17 @@ public class DependentPortal extends Portal {
     private int parentPosZ;
     private RegistryKey<World> parentDimension;
     private int pocketIndex;
-
-    private boolean dataInvalid = false;
+    private boolean portalInvalid = false;
 
     public DependentPortal(EntityType<?> entityType, World world) {
         super(entityType, world);
     }
 
-    public void setParentDimension(RegistryKey<World> dimension){
+    public void setup(BlockPos pos, RegistryKey<World> dimension, int index) {
         parentDimension = dimension;
-    }
-
-    public void setParentPos(BlockPos pos){
         parentPosX = pos.getX();
         parentPosY = pos.getY();
         parentPosZ = pos.getZ();
-    }
-
-    public void setPocketIndex(int index){
         pocketIndex = index;
     }
 
@@ -44,6 +37,9 @@ public class DependentPortal extends Portal {
     public void tick() {
         super.tick();
         if(!world.isClient) {
+            if (portalInvalid){
+                remove(Entity.RemovalReason.KILLED);
+            }
             //Remove the portal if there is not a corresponding block-entity that has the right pocketIndex
             World parentWorld = world.getServer().getWorld(parentDimension);
             if(parentWorld != null) {
@@ -52,14 +48,14 @@ public class DependentPortal extends Portal {
                     if (optionalBlockEntity.isPresent()) {
                         UniverseBoxBlockEntity blockEntity = optionalBlockEntity.get();
                         if (pocketIndex != blockEntity.pocketIndex) {
-                            remove(Entity.RemovalReason.KILLED);
+                            portalInvalid = true;
                         }
                     }else{
-                        remove(Entity.RemovalReason.KILLED);
+                        portalInvalid = true;
                     }
                 }
             }else{
-                remove(Entity.RemovalReason.KILLED);
+                portalInvalid = true;
             }
         }
     }
@@ -67,11 +63,11 @@ public class DependentPortal extends Portal {
     @Override
     protected void readCustomDataFromNbt(NbtCompound compoundTag) {
         super.readCustomDataFromNbt(compoundTag);
-        if(!compoundTag.contains("parentPosX") ) dataInvalid = true;
-        if(!compoundTag.contains("parentPosY") ) dataInvalid = true;
-        if(!compoundTag.contains("parentPosZ") ) dataInvalid = true;
-        if(!compoundTag.contains("parentDimension") ) dataInvalid = true;
-        if(!compoundTag.contains("pocketIndex") ) dataInvalid = true;
+        if(!compoundTag.contains("parentPosX") ) portalInvalid = true;
+        if(!compoundTag.contains("parentPosY") ) portalInvalid = true;
+        if(!compoundTag.contains("parentPosZ") ) portalInvalid = true;
+        if(!compoundTag.contains("parentDimension") ) portalInvalid = true;
+        if(!compoundTag.contains("pocketIndex") ) portalInvalid = true;
         parentPosX = compoundTag.getInt("parentPosX");
         parentPosY = compoundTag.getInt("parentPosY");
         parentPosZ = compoundTag.getInt("parentPosZ");
