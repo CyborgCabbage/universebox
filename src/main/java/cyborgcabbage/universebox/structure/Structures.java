@@ -25,7 +25,6 @@ public class Structures {
      * See the comments in below for more details.
      */
     public static void setupAndRegisterStructureFeatures() {
-
         // This is Fabric API's builder for structures.
         // It has many options to make sure your structure will spawn and work properly.
         // Give it your structure and the identifier you want for it.

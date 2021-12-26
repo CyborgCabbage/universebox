@@ -75,7 +75,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
                 blockEntity.markDirty();
             }
 
-            int ipX = blockEntity.pocketIndex*16+8;
+            int ipX = blockEntity.pocketIndex*64+8;
             int ipY = 64;
             int ipZ = 8;
 

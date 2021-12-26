@@ -11,6 +11,7 @@ import net.minecraft.structure.StructurePiecesGenerator;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.SpawnSettings;
@@ -78,22 +79,14 @@ public class PocketStructure extends StructureFeature<StructurePoolFeatureConfig
          * structure's spacing into the chunk generator, the structure will not spawn in that dimension!
          */
         private static boolean canGenerate(StructureGeneratorFactory.Context<StructurePoolFeatureConfig> context) {
-            BlockPos spawnXZPosition = context.chunkPos().getCenterAtY(0);
-
-            // Grab height of land. Will stop at first non-air block.
-            int landHeight = context.chunkGenerator().getHeightInGround(spawnXZPosition.getX(), spawnXZPosition.getZ(), Heightmap.Type.WORLD_SURFACE_WG, context.world());
-
-            // Grabs column of blocks at given position. In overworld, this column will be made of stone, water, and air.
-            // In nether, it will be netherrack, lava, and air. End will only be endstone and air. It depends on what block
-            // the chunk generator will place for that dimension.
-            VerticalBlockSample columnOfBlocks = context.chunkGenerator().getColumnSample(spawnXZPosition.getX(), spawnXZPosition.getZ(), context.world());
-
-            // Combine the column of blocks with land height and you get the top block itself which you can test.
-            BlockState topBlock = columnOfBlocks.getState(landHeight);
-
-            // Now we test to make sure our structure is not spawning on water or other fluids.
-            // You can do height check instead too to make it spawn at high elevations.
-            return topBlock.getFluidState().isEmpty(); //landHeight > 100;
+            ChunkPos chunkPos = context.chunkPos();
+            int f = 4;
+            if(chunkPos.x % f == 0){
+                if(chunkPos.z % f == 0){
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static Optional<StructurePiecesGenerator<StructurePoolFeatureConfig>> createPiecesGenerator(StructureGeneratorFactory.Context<StructurePoolFeatureConfig> context) {
