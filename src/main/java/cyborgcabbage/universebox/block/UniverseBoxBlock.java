@@ -10,7 +10,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
@@ -20,6 +22,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -42,12 +45,17 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
     }
 
     @Override
-    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         if (world instanceof ServerWorld serverWorld) {
+            UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
             //Get pocket dimension id
-            PocketState pocketState = serverWorld.getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
-            int pocketId = pocketState.getAndIncrement();
-            UniverseBox.LOGGER.info("ID of new Pocket Dimension is "+pocketId);
+            if(blockEntity.pocketIndex == -1) {
+                PocketState pocketState = serverWorld.getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
+                blockEntity.pocketIndex = pocketState.getAndIncrement();
+                UniverseBox.LOGGER.info("ID of new Pocket Dimension is " + blockEntity.pocketIndex);
+
+                blockEntity.markDirty();
+            }
             //Create link to pocket dimension
             World innerWorld = world.getServer().getWorld(UniverseBox.POCKET_DIMENSION);
             World outerWorld = world;
@@ -55,15 +63,12 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
             RegistryKey<World> innerDimension = UniverseBox.POCKET_DIMENSION;
             RegistryKey<World> outerDimension = world.getRegistryKey();
 
-            int ipX = pocketId*16+8;
+            int ipX = blockEntity.pocketIndex*16+8;
             int ipY = 64;
             int ipZ = 8;
 
             Vec3d outerPortalPos = new Vec3d(pos.getX()+0.5, pos.getY()+PORTAL_VERTICAL_OFFSET, pos.getZ()+0.5);
             Vec3d innerPortalPos = new Vec3d(ipX+0.5, ipY+PORTAL_VERTICAL_OFFSET, ipZ+0.5);
-
-            /*System.out.println("INNER PROTAL POSITION");
-            System.out.println(new Vec3d(randomX+0.5, 64+PORTAL_VERTICAL_OFFSET, randomZ+0.5));*/
 
             //Create outer portal
             DependentPortal outerPortal = UniverseBox.DEPENDENT_PORTAL.create(outerWorld);
@@ -78,6 +83,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
             );
             outerPortal.setParentPos(pos);
             outerPortal.setParentDimension(outerDimension);
+            outerPortal.setPocketIndex(blockEntity.pocketIndex);
             outerPortal.world.spawnEntity(outerPortal);
 
             //Create inner portal
@@ -93,41 +99,8 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
             );
             innerPortal.setParentPos(pos);
             innerPortal.setParentDimension(outerDimension);
+            innerPortal.setPocketIndex(blockEntity.pocketIndex);
             innerPortal.world.spawnEntity(innerPortal);
-
-            //Store portal UUID
-            UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
-            blockEntity.outerPortalUuid = outerPortal.getUuid();
-            blockEntity.innerPortalUuid = innerPortal.getUuid();
-            blockEntity.outerDimension = outerDimension;
-            blockEntity.innerDimension = innerDimension;
-            blockEntity.pocketIndex = pocketId;
-            blockEntity.markDirty();
-        }
-    }
-
-    private void removePortal(World world, RegistryKey<World> dimension, UUID portalUuid){
-        if(dimension != null && portalUuid != null) {
-            UniverseBox.LOGGER.warn("Removing Portal");
-            UniverseBox.LOGGER.warn("portalUuid: "+portalUuid);
-            UniverseBox.LOGGER.warn("dimension: "+dimension);
-            ServerWorld outerWorld = world.getServer().getWorld(dimension);
-            Entity entity = outerWorld.getEntity(portalUuid);
-            if(entity != null) entity.remove(Entity.RemovalReason.KILLED);
-            else UniverseBox.LOGGER.warn("UniverseBoxBlock could not remove portal as the entity could not be found");
-        }else{
-            UniverseBox.LOGGER.warn("UniverseBoxBlock could not remove portal as NBT was null");
-        }
-    }
-
-    @Override
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        super.onBreak(world, pos, state, player);
-        if(world instanceof ServerWorld serverWorld) {
-            //Remove portals
-            UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
-            //removePortal(world, blockEntity.innerDimension, blockEntity.innerPortalUuid);
-            //removePortal(world, blockEntity.outerDimension, blockEntity.outerPortalUuid);
         }
     }
 
