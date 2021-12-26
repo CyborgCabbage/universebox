@@ -46,20 +46,23 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         if (world instanceof ServerWorld serverWorld) {
             UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
+
+            //Create link to pocket dimension
+            ServerWorld innerWorld = world.getServer().getWorld(UniverseBox.POCKET_DIMENSION);
+            ServerWorld outerWorld = serverWorld;
+
+            RegistryKey<World> innerDimension = UniverseBox.POCKET_DIMENSION;
+            RegistryKey<World> outerDimension = world.getRegistryKey();
+
             //Get pocket dimension id
             if(blockEntity.pocketIndex == -1) {
-                PocketState pocketState = serverWorld.getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
+                PocketState pocketState = innerWorld.getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
                 blockEntity.pocketIndex = pocketState.getAndIncrement();
                 UniverseBox.LOGGER.info("ID of new Pocket Dimension is " + blockEntity.pocketIndex);
 
                 blockEntity.markDirty();
             }
-            //Create link to pocket dimension
-            World innerWorld = world.getServer().getWorld(UniverseBox.POCKET_DIMENSION);
-            World outerWorld = world;
 
-            RegistryKey<World> innerDimension = UniverseBox.POCKET_DIMENSION;
-            RegistryKey<World> outerDimension = world.getRegistryKey();
 
             int ipX = blockEntity.pocketIndex*16+8;
             int ipY = 64;
@@ -93,7 +96,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
                     7.0/8.0, // width
                     7.0/8.0 // height
             );
-            outerPortal.setup(pos, outerDimension, blockEntity.pocketIndex);
+            innerPortal.setup(pos, outerDimension, blockEntity.pocketIndex);
             innerPortal.world.spawnEntity(innerPortal);
         }
     }

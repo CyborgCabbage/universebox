@@ -68,6 +68,7 @@ public class DependentPortal extends Portal {
         if(!compoundTag.contains("parentPosZ") ) portalInvalid = true;
         if(!compoundTag.contains("parentDimension") ) portalInvalid = true;
         if(!compoundTag.contains("pocketIndex") ) portalInvalid = true;
+        if(portalInvalid) return;
         parentPosX = compoundTag.getInt("parentPosX");
         parentPosY = compoundTag.getInt("parentPosY");
         parentPosZ = compoundTag.getInt("parentPosZ");
