@@ -9,16 +9,25 @@ import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.MessageType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -28,6 +37,8 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class UniverseBoxBlock extends Block implements BlockEntityProvider {
     private static final VoxelShape BLOCK_SHAPE = VoxelShapes.combineAndSimplify(VoxelShapes.fullCube(), Block.createCuboidShape(1.0, 1.0, 1.0, 15.0, 16.0, 15.0), BooleanBiFunction.ONLY_FIRST);
@@ -66,6 +77,8 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
                         blockEntity.pocketIndex = itemNbt.getInt(UniverseBoxBlockEntity.TAG);
                     }
                 }
+            }else{
+                world.getServer().getPlayerManager().broadcast(new LiteralText("PocketIndex: "+blockEntity.pocketIndex), MessageType.CHAT, Util.NIL_UUID);
             }
             if(blockEntity.pocketIndex == -1) {
                 PocketState pocketState = innerWorld.getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
@@ -76,7 +89,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
             }
 
             int ipX = blockEntity.pocketIndex*64+8;
-            int ipY = 64;
+            int ipY = 63;
             int ipZ = 8;
 
             Vec3d outerPortalPos = new Vec3d(pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5);
@@ -108,7 +121,12 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
                     7.0/8.0 // height
             );
             innerPortal.setup(pos, outerDimension, blockEntity.pocketIndex);
+            innerPortal.setInteractable(false);
             innerPortal.world.spawnEntity(innerPortal);
+
+            if (itemStack.hasCustomName()) {
+                blockEntity.setCustomName(itemStack.getName());
+            }
         }
     }
 
@@ -116,15 +134,36 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof UniverseBoxBlockEntity universeBoxBlockEntity) {
-            if (!world.isClient && player.isCreative() && universeBoxBlockEntity.pocketIndex != -1) {
-                ItemStack itemStack = new ItemStack(UniverseBox.UNIVERSE_BOX_BLOCK);
-                itemStack.setSubNbt("BlockEntityTag", blockEntity.createNbt());
-                ItemEntity itemEntity = new ItemEntity(world, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5, itemStack);
-                itemEntity.setToDefaultPickupDelay();
-                world.spawnEntity(itemEntity);
+            if (!world.isClient){
+                if(!player.isCreative() || (player.isCreative() && universeBoxBlockEntity.pocketIndex != -1)) {
+                    ItemStack itemStack = new ItemStack(UniverseBox.UNIVERSE_BOX_BLOCK);
+                    itemStack.setSubNbt("BlockEntityTag", blockEntity.createNbt());
+                    if (universeBoxBlockEntity.hasCustomName()) {
+                        itemStack.setCustomName(universeBoxBlockEntity.getCustomName());
+                    }
+                    ItemEntity itemEntity = new ItemEntity(world, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5, itemStack);
+                    itemEntity.setToDefaultPickupDelay();
+                    world.spawnEntity(itemEntity);
+                }
             }
         }
         super.onBreak(world, pos, state, player);
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, @Nullable BlockView world, List<Text> tooltip, TooltipContext options) {
+        super.appendTooltip(stack, world, tooltip, options);
+        NbtCompound nbtCompound = BlockItem.getBlockEntityNbt(stack);
+        if (nbtCompound != null) {
+            if (nbtCompound.contains("PocketIndex")) {
+                MutableText mutableText = new LiteralText("Pocket Index: ").formatted(Formatting.GRAY);
+                mutableText.append(String.valueOf(nbtCompound.getInt("PocketIndex")));
+                tooltip.add(mutableText);
+                return;
+            }
+        }
+        MutableText mutableText = new LiteralText("Unopened").formatted(Formatting.GRAY);
+        tooltip.add(mutableText);
     }
 
     @Override
@@ -136,7 +175,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
 
     @Override
     public PistonBehavior getPistonBehavior(BlockState state) {
-        return PistonBehavior.DESTROY;
+        return PistonBehavior.BLOCK;
     }
 
     @Override

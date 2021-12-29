@@ -10,10 +10,13 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.loot.v1.FabricLootPoolBuilder;
+import net.fabricmc.fabric.api.loot.v1.event.LootTableLoadingCallback;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.EntityDimensions;
@@ -21,22 +24,31 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.loot.LootTables;
+import net.minecraft.loot.entry.ItemEntry;
+import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.feature.ConfiguredFeatures;
-import net.minecraft.world.gen.feature.ConfiguredStructureFeature;
-import net.minecraft.world.gen.feature.ConfiguredStructureFeatures;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+/*
+TODO: Make portals rotate based on where you are facing when you place the box
+TODO: Very rarely spawn entangled boxes, where one box contains another which connects to itself
+TODO: Add some more structures
+TODO: Limit render distance in pocket dimension to 2
+TODO: Make the pocket dimension structure spawn only when you place the block
+TODO: Make a Proper texture for the block
+TODO: Proper loading animation for the portal
+ */
 
 public class UniverseBox implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("universebox");
     public static final String MODID = "universebox";
 
-    public static final Block UNIVERSE_BOX_BLOCK = new UniverseBoxBlock(FabricBlockSettings.of(Material.METAL).strength(4.0f).luminance(state -> 10));
+    public static final Block UNIVERSE_BOX_BLOCK = new UniverseBoxBlock(FabricBlockSettings.of(Material.METAL).strength(2.0f).luminance(state -> 10));
     public static BlockEntityType<UniverseBoxBlockEntity> UNIVERSE_BOX_BLOCK_ENTITY;
 
     public static final RegistryKey<World> POCKET_DIMENSION = RegistryKey.of(Registry.WORLD_KEY, new Identifier("universebox","pocket_dimension"));
@@ -53,11 +65,12 @@ public class UniverseBox implements ModInitializer {
 
     public static final Block REALITY_WALL_BLOCK = new Block(FabricBlockSettings.of(Material.STONE).strength(-1.0f, 3600000.0f).dropsNothing().allowsSpawning((a, b, c, d) -> false));
     public static final Block UNIVERSE_BOX_OPPOSITE_BLOCK = new UniverseBoxOppositeBlock(FabricBlockSettings.of(Material.METAL).strength(-1.0f, 3600000.0f).dropsNothing().luminance(state -> 10));
+
     @Override
     public void onInitialize() {
         //Universe Box Block
         Registry.register(Registry.BLOCK, new Identifier("universebox", "universe_box"), UNIVERSE_BOX_BLOCK);
-        Registry.register(Registry.ITEM, new Identifier("universebox", "universe_box"), new BlockItem(UNIVERSE_BOX_BLOCK, new FabricItemSettings().group(ItemGroup.MISC)));
+        Registry.register(Registry.ITEM, new Identifier("universebox", "universe_box"), new BlockItem(UNIVERSE_BOX_BLOCK, new FabricItemSettings().maxCount(1).group(ItemGroup.MISC)));
         UNIVERSE_BOX_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "universebox:universe_box_block_entity", FabricBlockEntityTypeBuilder.create(UniverseBoxBlockEntity::new, UNIVERSE_BOX_BLOCK).build(null));
         //Reality Wall Block
         Registry.register(Registry.BLOCK, new Identifier("universebox", "reality_wall"), REALITY_WALL_BLOCK);
@@ -68,103 +81,56 @@ public class UniverseBox implements ModInitializer {
         //Structures
         Structures.setupAndRegisterStructureFeatures();
         ConfiguredStructures.registerConfiguredStructures();
-        addStructureSpawningToDimensionsAndBiomes();
-        //Dimension
-        /*DimensionAPI.serverDimensionsLoadEvent.register((generatorOptions, registryManager) -> {
-            SimpleRegistry<DimensionOptions> registry = generatorOptions.getDimensions();
-            long seed = generatorOptions.getSeed();
-
-            //Dimension type
-            DimensionType dimensionType = registryManager.get(Registry.DIMENSION_TYPE_KEY)
-                    .get(new Identifier("universebox:pocket_dimension_type"));
-            Validate.notNull(dimensionType);
-
-            //Chunk Generator type
-            ChunkGenerator chunkGenerator = registryManager.get();
-                    .get(new Identifier("universebox:pocket_dimension_generator"));
-            Validate.notNull(chunkGenerator);
-
-            // directly register the dimension
-            Identifier dimensionId = new Identifier("universebox:pocket_dimension");
-            DimensionAPI.addDimension(
-                    seed, registry, dimensionId, () -> dimensionType,
-
-            );
-        });*/
-    }
-
-    /**
-     * used for spawning our structures in biomes.
-     * You can move the BiomeModification API anywhere you prefer it to be at.
-     * Just make sure you call BiomeModifications.addStructure at mod init.
-     */
-    public static void addStructureSpawningToDimensionsAndBiomes() {
-
-        /*
-         * This is the API you will use to add anything to any biome.
-         * This includes spawns, changing the biome's looks, messing with its temperature,
-         * adding carvers, spawning new features... etc
-         */
         BiomeModifications.addStructure(
-                // Add our structure to all biomes that have any of these biome categories. This includes modded biomes.
-                // You can filter to certain biomes based on stuff like temperature, scale, precipitation, mod id, etc.
-                // See BiomeSelectors's methods for more options or write your own by doing `(context) -> context.whatever() == condition`
-                /*BiomeSelectors.categories(
-                        Biome.Category.DESERT,
-                        Biome.Category.EXTREME_HILLS,
-                        Biome.Category.FOREST,
-                        Biome.Category.ICY,
-                        Biome.Category.JUNGLE,
-                        Biome.Category.PLAINS,
-                        Biome.Category.SAVANNA,
-                        Biome.Category.TAIGA),*/
-                //BiomeSelectors.categories(Biome.Category.UNDERGROUND),
-                //BiomeSelectors.categories(Biome.Category.PLAINS),
                 BiomeSelectors.includeByKey(RegistryKey.of(Registry.BIOME_KEY,new Identifier(MODID,"pocket_dimension_biome"))),
-                // The registry key of our ConfiguredStructure so BiomeModification API can grab it
-                // later to tell the game which biomes that your structure can spawn within.
                 RegistryKey.of(
                         Registry.CONFIGURED_STRUCTURE_FEATURE_KEY,
                         BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.getId(ConfiguredStructures.CONFIGURED_POCKET_STRUCTURE))
         );
-
-        //////////// DIMENSION BASED STRUCTURE SPAWNING (OPTIONAL) ////////////
-//
-//        // This is for making sure our ServerWorldEvents.LOAD event always fires after Fabric API's usage of the same event.
-//        // This is done so our changes don't get overwritten by Fabric API adding structure spacings to all dimensions.
-//        // Requires Fabric API v0.42.0  or newer.
-//        Identifier runAfterFabricAPIPhase = new Identifier(StructureTutorialMain.MODID, "run_after_fabric_api");
-//        ServerWorldEvents.LOAD.addPhaseOrdering(Event.DEFAULT_PHASE, runAfterFabricAPIPhase);
-//
-//        ServerWorldEvents.LOAD.register(runAfterFabricAPIPhase, (MinecraftServer minecraftServer, ServerWorld serverWorld) -> {
-//            // Skip superflat to prevent issues with it. Plus, users don't want structures clogging up their superflat worlds.
-//            if (serverWorld.getChunkManager().getChunkGenerator() instanceof FlatChunkGenerator && serverWorld.getRegistryKey().equals(World.OVERWORLD)) {
-//                return;
-//            }
-//
-//            StructuresConfig worldStructureConfig = serverWorld.getChunkManager().getChunkGenerator().getStructuresConfig();
-//
-//            // Controls the dimension blacklisting and/or whitelisting
-//            // If the spacing or our structure is not added for a dimension, the structure doesn't spawn in that dimension.
-//            // Note: due to a quirk with how Noise Settings are shared between dimensions, you need this mixin to make a
-//            // deep copy of the noise setting per dimension for your dimension whitelisting/blacklisting to work properly:
-//            // https://github.com/TelepathicGrunt/RepurposedStructures-Fabric/blob/1.18/src/main/java/com/telepathicgrunt/repurposedstructures/mixin/world/ChunkGeneratorMixin.java
-//
-//            // Need temp map as some mods use custom chunk generators with immutable maps in themselves.
-//            Map<StructureFeature<?>, StructureConfig> tempMap = new HashMap<>(worldStructureConfig.getStructures());
-//
-//            // Make absolutely sure modded dimension can or cannot spawn our structures.
-//            // New dimensions under the minecraft namespace will still get it (datapacks might do this)
-//            if(serverWorld.getRegistryKey().equals(World.OVERWORLD)) {
-//                tempMap.put(STStructures.RUN_DOWN_HOUSE, FabricStructureImpl.STRUCTURE_TO_CONFIG_MAP.get(STStructures.RUN_DOWN_HOUSE));
-//            }
-//            else {
-//                tempMap.remove(STStructures.RUN_DOWN_HOUSE);
-//            }
-//
-//            // Set the new modified map of structure spacing to the dimension's chunkgenerator.
-//            ((StructuresConfigAccessor)worldStructureConfig).setStructures(tempMap);
-//
-//        });
+        //Loot Tables
+        LootTableLoadingCallback.EVENT.register((resourceManager, lootManager, id, table, setter) -> {
+            if (LootTables.SIMPLE_DUNGEON_CHEST.equals(id)) {
+                FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(20).build());
+                table.pool(poolBuilder);
+            }
+            if (LootTables.ABANDONED_MINESHAFT_CHEST.equals(id)) {
+                FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(20).build());
+                table.pool(poolBuilder);
+            }
+            if (LootTables.BURIED_TREASURE_CHEST.equals(id)) {
+                FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(20).build());
+                table.pool(poolBuilder);
+            }
+            if (LootTables.END_CITY_TREASURE_CHEST.equals(id)) {
+                FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(10).build());
+                table.pool(poolBuilder);
+            }
+            if (LootTables.STRONGHOLD_CORRIDOR_CHEST.equals(id)) {
+                FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(10).build());
+                table.pool(poolBuilder);
+            }
+            if (LootTables.STRONGHOLD_CROSSING_CHEST.equals(id)) {
+                FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(10).build());
+                table.pool(poolBuilder);
+            }
+        });
     }
 }
