@@ -7,30 +7,30 @@ import cyborgcabbage.universebox.portal.DependentPortal;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.MessageType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.function.BooleanBiFunction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
@@ -41,9 +41,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class UniverseBoxBlock extends Block implements BlockEntityProvider {
+    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
     private static final VoxelShape BLOCK_SHAPE = VoxelShapes.combineAndSimplify(VoxelShapes.fullCube(), Block.createCuboidShape(1.0, 1.0, 1.0, 15.0, 16.0, 15.0), BooleanBiFunction.ONLY_FIRST);
     public UniverseBoxBlock(Settings settings) {
         super(settings);
+        setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH));
     }
 
     @Override
@@ -54,6 +56,12 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
     @Override
     public int getOpacity(BlockState state, BlockView world, BlockPos pos) {
         return 0;
+    }
+
+    @Override
+    @Nullable
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        return this.getDefaultState().with(FACING, ctx.getPlayerFacing());
     }
 
     @Override
@@ -106,6 +114,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
                     7.0/8.0, // width
                     7.0/8.0 // height
             );
+            outerPortal.setRotationTransformation(new Quaternion(Vec3f.POSITIVE_Y,state.get(FACING).asRotation(),true));
             outerPortal.setup(pos, outerDimension, blockEntity.pocketIndex);
             outerPortal.world.spawnEntity(outerPortal);
 
@@ -120,6 +129,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
                     7.0/8.0, // width
                     7.0/8.0 // height
             );
+            innerPortal.setRotationTransformation(new Quaternion(Vec3f.NEGATIVE_Y,state.get(FACING).asRotation(),true));
             innerPortal.setup(pos, outerDimension, blockEntity.pocketIndex);
             innerPortal.setInteractable(false);
             innerPortal.world.spawnEntity(innerPortal);
@@ -181,5 +191,10 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new UniverseBoxBlockEntity(pos, state);
+    }
+
+    @Override
+    protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
+        stateManager.add(FACING);
     }
 }

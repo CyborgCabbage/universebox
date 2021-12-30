@@ -35,13 +35,13 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 /*
-TODO: Make portals rotate based on where you are facing when you place the box
 TODO: Very rarely spawn entangled boxes, where one box contains another which connects to itself
 TODO: Add some more structures
 TODO: Limit render distance in pocket dimension to 2
 TODO: Make the pocket dimension structure spawn only when you place the block
 TODO: Make a Proper texture for the block
 TODO: Proper loading animation for the portal
+TODO: Always drop when destroyed in an explosion
  */
 
 public class UniverseBox implements ModInitializer {
