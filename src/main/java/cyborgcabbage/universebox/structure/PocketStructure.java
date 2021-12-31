@@ -2,7 +2,6 @@ package cyborgcabbage.universebox.structure;
 
 import com.mojang.serialization.Codec;
 import cyborgcabbage.universebox.UniverseBox;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.structure.PoolStructurePiece;
 import net.minecraft.structure.PostPlacementProcessor;
@@ -13,9 +12,7 @@ import net.minecraft.util.collection.Pool;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.SpawnSettings;
-import net.minecraft.world.gen.chunk.VerticalBlockSample;
 import net.minecraft.world.gen.feature.StructureFeature;
 import net.minecraft.world.gen.feature.StructurePoolFeatureConfig;
 import org.apache.logging.log4j.Level;

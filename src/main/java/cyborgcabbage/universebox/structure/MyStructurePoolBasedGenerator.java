@@ -2,21 +2,8 @@ package cyborgcabbage.universebox.structure;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
-import java.util.function.Predicate;
 import net.minecraft.block.JigsawBlock;
-import net.minecraft.structure.JigsawJunction;
-import net.minecraft.structure.PoolStructurePiece;
-import net.minecraft.structure.Structure;
-import net.minecraft.structure.StructureGeneratorFactory;
-import net.minecraft.structure.StructureManager;
-import net.minecraft.structure.StructurePiecesGenerator;
+import net.minecraft.structure.*;
 import net.minecraft.structure.pool.EmptyPoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
@@ -44,6 +31,9 @@ import net.minecraft.world.gen.random.ChunkRandom;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.*;
+import java.util.function.Predicate;
 
 public class MyStructurePoolBasedGenerator {
     static final Logger LOGGER = LogManager.getLogger();
