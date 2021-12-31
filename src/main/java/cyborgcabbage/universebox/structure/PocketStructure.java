@@ -34,16 +34,6 @@ public class PocketStructure extends StructureFeature<StructurePoolFeatureConfig
                     PostPlacementProcessor.EMPTY);
         }
 
-        public static final Pool<SpawnSettings.SpawnEntry> STRUCTURE_MONSTERS = Pool.of(
-                new SpawnSettings.SpawnEntry(EntityType.ILLUSIONER, 100, 4, 9),
-                new SpawnSettings.SpawnEntry(EntityType.VINDICATOR, 100, 4, 9)
-        );
-
-        public static final Pool<SpawnSettings.SpawnEntry> STRUCTURE_CREATURES = Pool.of(
-                new SpawnSettings.SpawnEntry(EntityType.SHEEP, 30, 10, 15),
-                new SpawnSettings.SpawnEntry(EntityType.RABBIT, 100, 1, 2)
-        );
-
         public static Optional<StructurePiecesGenerator<StructurePoolFeatureConfig>> createPiecesGenerator(StructureGeneratorFactory.Context<StructurePoolFeatureConfig> context) {
             BlockPos blockpos = context.chunkPos().getBlockPos(8,64,8);
 
