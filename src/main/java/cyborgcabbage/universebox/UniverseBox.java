@@ -94,42 +94,42 @@ public class UniverseBox implements ModInitializer {
                 FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
-                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(20).build());
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(7).build());
                 table.pool(poolBuilder);
             }
             if (LootTables.ABANDONED_MINESHAFT_CHEST.equals(id)) {
                 FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
-                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(20).build());
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(7).build());
                 table.pool(poolBuilder);
             }
             if (LootTables.BURIED_TREASURE_CHEST.equals(id)) {
                 FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
-                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(20).build());
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(7).build());
                 table.pool(poolBuilder);
             }
             if (LootTables.END_CITY_TREASURE_CHEST.equals(id)) {
                 FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
-                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(10).build());
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(8).build());
                 table.pool(poolBuilder);
             }
             if (LootTables.STRONGHOLD_CORRIDOR_CHEST.equals(id)) {
                 FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
-                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(10).build());
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(3).build());
                 table.pool(poolBuilder);
             }
             if (LootTables.STRONGHOLD_CROSSING_CHEST.equals(id)) {
                 FabricLootPoolBuilder poolBuilder = FabricLootPoolBuilder.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .withEntry(ItemEntry.builder(UniverseBox.UNIVERSE_BOX_BLOCK).weight(1).build())
-                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(10).build());
+                        .withEntry(ItemEntry.builder(Blocks.AIR).weight(3).build());
                 table.pool(poolBuilder);
             }
         });
