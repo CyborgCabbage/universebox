@@ -15,7 +15,6 @@ public class Structures {
     public static void setupAndRegisterStructureFeatures() {
         FabricStructureBuilder.create(new Identifier(UniverseBox.MODID, "pocket_structure"), POCKET_STRUCTURE)
                 .step(GenerationStep.Feature.UNDERGROUND_STRUCTURES)
-
                 .defaultConfig(new StructureConfig(
                         1, /* average distance apart in chunks between spawn attempts */
                         0, /* minimum distance apart in chunks between spawn attempts. MUST BE LESS THAN ABOVE VALUE */
