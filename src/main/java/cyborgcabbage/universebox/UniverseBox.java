@@ -4,7 +4,6 @@ import cyborgcabbage.universebox.block.UniverseBoxBlock;
 import cyborgcabbage.universebox.block.UniverseBoxOppositeBlock;
 import cyborgcabbage.universebox.block.entity.UniverseBoxBlockEntity;
 import cyborgcabbage.universebox.portal.DependentPortal;
-import cyborgcabbage.universebox.structure.ConfiguredStructures;
 import cyborgcabbage.universebox.structure.Structures;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
@@ -27,11 +26,14 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.loot.LootTables;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
+import net.minecraft.structure.PlainsVillageData;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
+import net.minecraft.world.gen.feature.ConfiguredStructureFeature;
+import net.minecraft.world.gen.feature.StructurePoolFeatureConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,6 +59,9 @@ public class UniverseBox implements ModInitializer {
     public static final Block REALITY_WALL_BLOCK = new Block(FabricBlockSettings.of(Material.STONE).strength(-1.0f, 3600000.0f).dropsNothing().allowsSpawning((a, b, c, d) -> false));
     public static final Block UNIVERSE_BOX_OPPOSITE_BLOCK = new UniverseBoxOppositeBlock(FabricBlockSettings.of(Material.METAL).strength(-1.0f, 3600000.0f).dropsNothing().luminance(state -> 10));
 
+    public static ConfiguredStructureFeature<?, ?> CONFIGURED_POCKET_STRUCTURE = Structures.POCKET_STRUCTURE
+            .configure(new StructurePoolFeatureConfig(() -> PlainsVillageData.STRUCTURE_POOLS, 0));
+
     @Override
     public void onInitialize() {
         //Universe Box Block
@@ -71,12 +76,15 @@ public class UniverseBox implements ModInitializer {
         Registry.register(Registry.ITEM, new Identifier("universebox", "universe_box_opposite"), new BlockItem(UNIVERSE_BOX_OPPOSITE_BLOCK, new FabricItemSettings()));
         //Structures
         Structures.setupAndRegisterStructureFeatures();
-        ConfiguredStructures.registerConfiguredStructures();
+
+        Registry<ConfiguredStructureFeature<?, ?>> registry = BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE;
+        Registry.register(registry, new Identifier(MODID, "configured_pocket_structure"), CONFIGURED_POCKET_STRUCTURE);
+
         BiomeModifications.addStructure(
                 BiomeSelectors.includeByKey(RegistryKey.of(Registry.BIOME_KEY,new Identifier(MODID,"pocket_dimension_biome"))),
                 RegistryKey.of(
                         Registry.CONFIGURED_STRUCTURE_FEATURE_KEY,
-                        BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.getId(ConfiguredStructures.CONFIGURED_POCKET_STRUCTURE))
+                        BuiltinRegistries.CONFIGURED_STRUCTURE_FEATURE.getId(CONFIGURED_POCKET_STRUCTURE))
         );
         //Loot Tables
         LootTableLoadingCallback.EVENT.register((resourceManager, lootManager, id, table, setter) -> {
