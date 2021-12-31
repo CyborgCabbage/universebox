@@ -75,10 +75,10 @@ public class UniverseBox implements ModInitializer {
         UNIVERSE_BOX_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "universebox:universe_box_block_entity", FabricBlockEntityTypeBuilder.create(UniverseBoxBlockEntity::new, UNIVERSE_BOX_BLOCK).build(null));
         //Reality Wall Block
         Registry.register(Registry.BLOCK, new Identifier("universebox", "reality_wall"), REALITY_WALL_BLOCK);
-        Registry.register(Registry.ITEM, new Identifier("universebox", "reality_wall"), new BlockItem(REALITY_WALL_BLOCK, new FabricItemSettings().group(ItemGroup.MISC)));
+        Registry.register(Registry.ITEM, new Identifier("universebox", "reality_wall"), new BlockItem(REALITY_WALL_BLOCK, new FabricItemSettings()));
         //Universe Box Opposite Block
         Registry.register(Registry.BLOCK, new Identifier("universebox", "universe_box_opposite"), UNIVERSE_BOX_OPPOSITE_BLOCK);
-        Registry.register(Registry.ITEM, new Identifier("universebox", "universe_box_opposite"), new BlockItem(UNIVERSE_BOX_OPPOSITE_BLOCK, new FabricItemSettings().group(ItemGroup.MISC)));
+        Registry.register(Registry.ITEM, new Identifier("universebox", "universe_box_opposite"), new BlockItem(UNIVERSE_BOX_OPPOSITE_BLOCK, new FabricItemSettings()));
         //Structures
         Structures.setupAndRegisterStructureFeatures();
         ConfiguredStructures.registerConfiguredStructures();

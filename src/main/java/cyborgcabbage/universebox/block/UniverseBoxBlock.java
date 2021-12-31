@@ -166,7 +166,7 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
         NbtCompound nbtCompound = BlockItem.getBlockEntityNbt(stack);
         if (nbtCompound != null) {
             if (nbtCompound.contains("PocketIndex")) {
-                MutableText mutableText = new LiteralText("Pocket Index: ").formatted(Formatting.GRAY);
+                MutableText mutableText = new LiteralText("#").formatted(Formatting.GRAY);
                 mutableText.append(String.valueOf(nbtCompound.getInt("PocketIndex")));
                 tooltip.add(mutableText);
                 return;
