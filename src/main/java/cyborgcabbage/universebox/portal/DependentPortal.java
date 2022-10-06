@@ -42,20 +42,20 @@ public class DependentPortal extends Portal {
             }
             //Remove the portal if there is not a corresponding block-entity that has the right pocketIndex
             World parentWorld = world.getServer().getWorld(parentDimension);
-            if(parentWorld != null) {
-                if (parentWorld.isChunkLoaded(parentPosX >> 4, parentPosZ >> 4)) {
-                    Optional<UniverseBoxBlockEntity> optionalBlockEntity = parentWorld.getBlockEntity(new BlockPos(parentPosX, parentPosY, parentPosZ), UniverseBox.UNIVERSE_BOX_BLOCK_ENTITY);
-                    if (optionalBlockEntity.isPresent()) {
-                        UniverseBoxBlockEntity blockEntity = optionalBlockEntity.get();
-                        if (pocketIndex != blockEntity.pocketIndex) {
-                            portalInvalid = true;
-                        }
-                    }else{
-                        portalInvalid = true;
-                    }
-                }
-            }else{
+            if (parentWorld == null) {
                 portalInvalid = true;
+                return;
+            }
+            if (parentWorld.isChunkLoaded(parentPosX >> 4, parentPosZ >> 4)) {
+                Optional<UniverseBoxBlockEntity> optionalBlockEntity = parentWorld.getBlockEntity(new BlockPos(parentPosX, parentPosY, parentPosZ), UniverseBox.UNIVERSE_BOX_BLOCK_ENTITY);
+                if (optionalBlockEntity.isEmpty()) {
+                    portalInvalid = true;
+                    return;
+                }
+                UniverseBoxBlockEntity blockEntity = optionalBlockEntity.get();
+                if (pocketIndex != blockEntity.pocketIndex) {
+                    portalInvalid = true;
+                }
             }
         }
     }
