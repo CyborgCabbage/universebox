@@ -8,6 +8,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,30 +18,38 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.MessageType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Util;
 import net.minecraft.util.function.BooleanBiFunction;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class UniverseBoxBlock extends Block implements BlockEntityProvider {
-    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
+public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEntityProvider {
+    public static final BooleanProperty OPEN = Properties.OPEN;
     private static final VoxelShape BLOCK_SHAPE = VoxelShapes.combineAndSimplify(VoxelShapes.fullCube(), Block.createCuboidShape(1.0, 1.0, 1.0, 15.0, 16.0, 15.0), BooleanBiFunction.ONLY_FIRST);
     public UniverseBoxBlock(Settings settings) {
         super(settings);
-        setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH));
+        setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(OPEN, false));
     }
 
     @Override
@@ -60,79 +69,120 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
     }
 
     @Override
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        state = state.cycle(OPEN);
+        boolean open = state.get(OPEN);
+        world.setBlockState(pos, state, Block.NOTIFY_LISTENERS | Block.REDRAW_ON_MAIN_THREAD);
+        world.playSound(null, pos, open ? SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 1.f, 1.f);
+        world.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
+        UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
+        if(open && world instanceof ServerWorld serverWorld && blockEntity != null){
+            openBox(world, pos, state, serverWorld, blockEntity);
+        }
+        return ActionResult.success(world.isClient);
+    }
+
+    @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         if (world instanceof ServerWorld serverWorld) {
             UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
-
-            //Create link to pocket dimension
-            ServerWorld innerWorld = world.getServer().getWorld(UniverseBox.POCKET_DIMENSION);
-            ServerWorld outerWorld = serverWorld;
-
-            RegistryKey<World> innerDimension = UniverseBox.POCKET_DIMENSION;
-            RegistryKey<World> outerDimension = world.getRegistryKey();
-
-            //Get pocket dimension id
-            if(blockEntity.pocketIndex == -1) {
-                NbtCompound itemNbt = itemStack.getNbt();
-                if(itemNbt != null) {
-                    world.getServer().getPlayerManager().broadcast(new LiteralText(itemNbt.toString()), MessageType.CHAT, Util.NIL_UUID);
-                    if (itemNbt.contains(UniverseBoxBlockEntity.TAG)) {
-                        blockEntity.pocketIndex = itemNbt.getInt(UniverseBoxBlockEntity.TAG);
-                    }
-                }
-            }else{
-                world.getServer().getPlayerManager().broadcast(new LiteralText("PocketIndex: "+blockEntity.pocketIndex), MessageType.CHAT, Util.NIL_UUID);
+            if(blockEntity == null) return;
+            if(state.get(OPEN)) {
+                openBox(world, pos, state, serverWorld, blockEntity);
             }
-            if(blockEntity.pocketIndex == -1) {
-                PocketState pocketState = innerWorld.getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
-                blockEntity.pocketIndex = pocketState.getAndIncrement();
-                UniverseBox.LOGGER.info("ID of new Pocket Dimension is " + blockEntity.pocketIndex);
-
-                blockEntity.markDirty();
-            }
-
-            int ipX = blockEntity.pocketIndex*64+8;
-            int ipY = 63;
-            int ipZ = 8;
-
-            Vec3d outerPortalPos = new Vec3d(pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5);
-            Vec3d innerPortalPos = new Vec3d(ipX+0.5, ipY+0.5, ipZ+0.5);
-
-            //Create outer portal
-            DependentPortal outerPortal = UniverseBox.DEPENDENT_PORTAL.create(outerWorld);
-            outerPortal.setOriginPos(outerPortalPos);
-            outerPortal.setDestinationDimension(innerDimension);
-            outerPortal.setDestination(innerPortalPos);
-            outerPortal.setOrientationAndSize(
-                    new Vec3d(0, 0, 1), // axisW
-                    new Vec3d(1, 0, 0), // axisH
-                    7.0/8.0, // width
-                    7.0/8.0 // height
-            );
-            outerPortal.setRotationTransformation(new Quaternion(Vec3f.POSITIVE_Y,state.get(FACING).asRotation(),true));
-            outerPortal.setup(pos, outerDimension, blockEntity.pocketIndex);
-            outerPortal.world.spawnEntity(outerPortal);
-
-            //Create inner portal
-            DependentPortal innerPortal = UniverseBox.DEPENDENT_PORTAL.create(innerWorld);
-            innerPortal.setOriginPos(innerPortalPos);
-            innerPortal.setDestinationDimension(outerDimension);
-            innerPortal.setDestination(outerPortalPos);
-            innerPortal.setOrientationAndSize(
-                    new Vec3d(1, 0, 0), // axisW
-                    new Vec3d(0, 0, 1), // axisH
-                    7.0/8.0, // width
-                    7.0/8.0 // height
-            );
-            innerPortal.setRotationTransformation(new Quaternion(Vec3f.NEGATIVE_Y,state.get(FACING).asRotation(),true));
-            innerPortal.setup(pos, outerDimension, blockEntity.pocketIndex);
-            innerPortal.setInteractable(false);
-            innerPortal.world.spawnEntity(innerPortal);
 
             if (itemStack.hasCustomName()) {
                 blockEntity.setCustomName(itemStack.getName());
             }
         }
+    }
+
+    private void openBox(World world, BlockPos pos, BlockState state, ServerWorld serverWorld, UniverseBoxBlockEntity blockEntity) {
+        //Generate pocket dimension id
+        if (blockEntity.pocketIndex == -1) {
+            PocketState pocketState = world.getServer().getWorld(UniverseBox.POCKET_DIMENSION).getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
+            blockEntity.pocketIndex = pocketState.getAndIncrement();
+            blockEntity.markDirty();
+        }
+        createPortals(pos, state.get(FACING), blockEntity.pocketIndex, serverWorld);
+    }
+
+    private void createPortals(BlockPos outerPos, Direction rotation, int pocketIndex, ServerWorld outerWorld) {
+        //Create link to pocket dimension
+        ServerWorld innerWorld = outerWorld.getServer().getWorld(UniverseBox.POCKET_DIMENSION);
+
+        RegistryKey<World> innerDimension = UniverseBox.POCKET_DIMENSION;
+        RegistryKey<World> outerDimension = outerWorld.getRegistryKey();
+
+        //Get pocket coordinates
+        int x = 0;
+        int z = 0;
+        if(pocketIndex != 0) {
+            int rIndex = (int) Math.ceil(Math.floor(Math.sqrt(pocketIndex)) / 2.0);
+            int rSize = rIndex * 2 + 1;
+            int rArea = rIndex * 8;
+            int rLess = (rSize - 2) * (rSize - 2);
+            int rOffset = pocketIndex - rLess;
+            int rSide = rOffset / (rArea/4);
+            int rSideOffset = rOffset % (rArea/4);
+            switch(rSide){
+                case 0 -> {
+                    x = rIndex;
+                    z = rSideOffset-rIndex;
+                }
+                case 1 -> {
+                    z = rIndex;
+                    x = rIndex-rSideOffset;
+                }
+                case 2 -> {
+                    x = -rIndex;
+                    z = rIndex-rSideOffset;
+                }
+                case 3 -> {
+                    z = -rIndex;
+                    x = rSideOffset-rIndex;
+                }
+            }
+        }
+
+        int ipX = 8+x*64;
+        int ipY = 63;
+        int ipZ = 8+z*64;
+
+        //Create portals
+        Vec3d outerPortalPos = new Vec3d(outerPos.getX()+0.5, outerPos.getY()+0.5, outerPos.getZ()+0.5);
+        Vec3d innerPortalPos = new Vec3d(ipX+0.5, ipY+0.5, ipZ+0.5);
+
+        //Create outer portal
+        DependentPortal outerPortal = UniverseBox.DEPENDENT_PORTAL.create(outerWorld);
+        outerPortal.setOriginPos(outerPortalPos);
+        outerPortal.setDestinationDimension(innerDimension);
+        outerPortal.setDestination(innerPortalPos);
+        outerPortal.setOrientationAndSize(
+                new Vec3d(0, 0, 1), // axisW
+                new Vec3d(1, 0, 0), // axisH
+                7.0/8.0, // width
+                7.0/8.0 // height
+        );
+        outerPortal.setRotationTransformation(new Quaternion(Vec3f.POSITIVE_Y, rotation.asRotation(),true));
+        outerPortal.setup(outerPos, outerDimension, pocketIndex);
+        outerPortal.world.spawnEntity(outerPortal);
+
+        //Create inner portal
+        DependentPortal innerPortal = UniverseBox.DEPENDENT_PORTAL.create(innerWorld);
+        innerPortal.setOriginPos(innerPortalPos);
+        innerPortal.setDestinationDimension(outerDimension);
+        innerPortal.setDestination(outerPortalPos);
+        innerPortal.setOrientationAndSize(
+                new Vec3d(1, 0, 0), // axisW
+                new Vec3d(0, 0, 1), // axisH
+                7.0/8.0, // width
+                7.0/8.0 // height
+        );
+        innerPortal.setRotationTransformation(new Quaternion(Vec3f.NEGATIVE_Y, rotation.asRotation(),true));
+        innerPortal.setup(outerPos, outerDimension, pocketIndex);
+        innerPortal.setInteractable(false);
+        innerPortal.world.spawnEntity(innerPortal);
     }
 
     @Override
@@ -142,7 +192,8 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
             if (!world.isClient){
                 if(!player.isCreative() || (player.isCreative() && universeBoxBlockEntity.pocketIndex != -1)) {
                     ItemStack itemStack = new ItemStack(UniverseBox.UNIVERSE_BOX_BLOCK);
-                    itemStack.setSubNbt("BlockEntityTag", blockEntity.createNbt());
+                    if(universeBoxBlockEntity.pocketIndex != -1)
+                        itemStack.setSubNbt("BlockEntityTag", blockEntity.createNbt());
                     if (universeBoxBlockEntity.hasCustomName()) {
                         itemStack.setCustomName(universeBoxBlockEntity.getCustomName());
                     }
@@ -190,6 +241,6 @@ public class UniverseBoxBlock extends Block implements BlockEntityProvider {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
-        stateManager.add(FACING);
+        stateManager.add(FACING, OPEN);
     }
 }

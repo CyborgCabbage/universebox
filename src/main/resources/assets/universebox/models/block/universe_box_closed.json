@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "universebox:block/universe_box_top",
+    "bottom": "universebox:block/universe_box_bottom",
+    "side": "universebox:block/universe_box_side"
+  }
+}

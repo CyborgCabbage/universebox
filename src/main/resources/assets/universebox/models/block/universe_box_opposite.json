@@ -1,9 +1,9 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "universebox:block/universe_box_interior",
-		"1": "universebox:block/universe_box_interior",
-		"particle": "universebox:block/universe_box_interior"
+		"0": "universebox:block/reality_wall",
+		"1": "universebox:block/reality_wall",
+		"particle": "universebox:block/reality_wall"
 	},
 	"elements": [
 		{

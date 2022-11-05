@@ -29,13 +29,13 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	// Dependency of Immersive Portals Core:
-	modImplementation ('com.github.qouteall.ImmersivePortalsMod:imm_ptl_core:v1.1.4-1.18'){
+	modImplementation ("com.github.qouteall.ImmersivePortalsMod:imm_ptl_core:${project.imm_ptl_version}"){
 		exclude(group: "net.fabricmc.fabric-api")
 		transitive(false)
 	}
 
 	// Dependency of the Miscellaneous Utility Library from qouteall
-	modImplementation ('com.github.qouteall.ImmersivePortalsMod:q_misc_util:v1.1.4-1.18'){
+	modImplementation ("com.github.qouteall.ImmersivePortalsMod:q_misc_util:${project.imm_ptl_version}"){
 		exclude(group: "net.fabricmc.fabric-api")
 		transitive(false)
 	}

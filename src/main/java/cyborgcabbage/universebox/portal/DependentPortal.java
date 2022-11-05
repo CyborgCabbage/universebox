@@ -1,7 +1,9 @@
 package cyborgcabbage.universebox.portal;
 
 import cyborgcabbage.universebox.UniverseBox;
+import cyborgcabbage.universebox.block.UniverseBoxBlock;
 import cyborgcabbage.universebox.block.entity.UniverseBoxBlockEntity;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.NbtCompound;
@@ -47,6 +49,16 @@ public class DependentPortal extends Portal {
                 return;
             }
             if (parentWorld.isChunkLoaded(parentPosX >> 4, parentPosZ >> 4)) {
+                BlockPos blockPos = new BlockPos(parentPosX, parentPosY, parentPosZ);
+                BlockState blockState = parentWorld.getBlockState(blockPos);
+                if(!blockState.isOf(UniverseBox.UNIVERSE_BOX_BLOCK)){
+                    portalInvalid = true;
+                    return;
+                }
+                if(!blockState.get(UniverseBoxBlock.OPEN)){
+                    portalInvalid = true;
+                    return;
+                }
                 Optional<UniverseBoxBlockEntity> optionalBlockEntity = parentWorld.getBlockEntity(new BlockPos(parentPosX, parentPosY, parentPosZ), UniverseBox.UNIVERSE_BOX_BLOCK_ENTITY);
                 if (optionalBlockEntity.isEmpty()) {
                     portalInvalid = true;
@@ -55,6 +67,7 @@ public class DependentPortal extends Portal {
                 UniverseBoxBlockEntity blockEntity = optionalBlockEntity.get();
                 if (pocketIndex != blockEntity.pocketIndex) {
                     portalInvalid = true;
+                    return;
                 }
             }
         }

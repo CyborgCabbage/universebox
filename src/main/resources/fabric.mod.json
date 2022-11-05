@@ -9,8 +9,7 @@
     "CyborgCabbage"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/CyborgCabbage/universebox"
   },
 
   "license": "CC0-1.0",
@@ -30,12 +29,9 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.11.3",
+    "fabricloader": "*",
     "fabric": "*",
     "minecraft": "1.18.x",
-    "java": ">=17"
-  },
-  "suggests": {
-    "another-mod": "*"
+    "imm_ptl_core": ">=1.2.5"
   }
 }

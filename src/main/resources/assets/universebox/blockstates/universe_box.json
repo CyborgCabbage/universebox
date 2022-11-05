@@ -1,5 +1,10 @@
 {
   "variants": {
-    "": { "model": "universebox:block/universe_box" }
+    "open=false": {
+      "model": "universebox:block/universe_box_closed"
+    },
+    "open=true": {
+      "model": "universebox:block/universe_box_open"
+    }
   }
 }
