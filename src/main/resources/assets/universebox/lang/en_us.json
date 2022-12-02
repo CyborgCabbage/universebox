@@ -1,5 +1,6 @@
 {
   "block.universebox.universe_box": "Universe Box",
   "block.universebox.universe_box_opposite": "Universe Box Opposite",
-  "block.universebox.reality_wall": "Reality Wall"
+  "block.universebox.reality_wall": "Reality Wall",
+  "block.universebox.universe_box.cannot_open": "Box must be on solid ground"
 }

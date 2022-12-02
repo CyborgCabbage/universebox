@@ -10,8 +10,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
-import qouteall.imm_ptl.core.dimension_sync.DimId;
 import qouteall.imm_ptl.core.portal.Portal;
+import qouteall.q_misc_util.dimension.DimId;
 
 import java.util.Optional;
 
@@ -56,6 +56,11 @@ public class DependentPortal extends Portal {
                     return;
                 }
                 if(!blockState.get(UniverseBoxBlock.OPEN)){
+                    portalInvalid = true;
+                    return;
+                }
+                if(!UniverseBoxBlock.canBeOpen(world, blockPos)){
+                    UniverseBoxBlock.cycleBoxState(world, blockPos, null);
                     portalInvalid = true;
                     return;
                 }

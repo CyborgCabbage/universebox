@@ -8,6 +8,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,7 +22,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -50,7 +50,10 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext context) {
-        return BLOCK_SHAPE;
+        if(state.get(OPEN))
+            return BLOCK_SHAPE;
+        else
+            return VoxelShapes.fullCube();
     }
 
     @Override
@@ -66,16 +69,28 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if(world.isClient) return ActionResult.SUCCESS;
+        //Attempt to open if closed
+        if(!canBeOpen(world, pos) && !state.get(OPEN)){
+            player.sendMessage(Text.translatable("block.universebox.universe_box.cannot_open"), true);
+            world.playSound(null, pos, SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.f, 1.f);
+            return ActionResult.CONSUME;
+        }
+        cycleBoxState(world, pos, player);
+        return ActionResult.CONSUME;
+    }
+
+    static public void cycleBoxState( World world, BlockPos pos, @Nullable Entity entity) {
+        BlockState state = world.getBlockState(pos);
         state = state.cycle(OPEN);
         boolean open = state.get(OPEN);
         world.setBlockState(pos, state, Block.NOTIFY_LISTENERS | Block.REDRAW_ON_MAIN_THREAD);
         world.playSound(null, pos, open ? SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 1.f, 1.f);
-        world.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
-        UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
+        world.emitGameEvent(entity, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
+        UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity) world.getBlockEntity(pos);
         if(open && world instanceof ServerWorld serverWorld && blockEntity != null){
             openBox(world, pos, state, serverWorld, blockEntity);
         }
-        return ActionResult.success(world.isClient);
     }
 
     @Override
@@ -84,16 +99,19 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
             UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity)world.getBlockEntity(pos);
             if(blockEntity == null) return;
             if(state.get(OPEN)) {
-                openBox(world, pos, state, serverWorld, blockEntity);
+                if(canBeOpen(world,pos)) {
+                    openBox(world, pos, state, serverWorld, blockEntity);
+                } else {
+                    cycleBoxState(world, pos, placer);
+                }
             }
-
             if (itemStack.hasCustomName()) {
                 blockEntity.setCustomName(itemStack.getName());
             }
         }
     }
 
-    private void openBox(World world, BlockPos pos, BlockState state, ServerWorld serverWorld, UniverseBoxBlockEntity blockEntity) {
+    static private void openBox(World world, BlockPos pos, BlockState state, ServerWorld serverWorld, UniverseBoxBlockEntity blockEntity) {
         //Generate pocket dimension id
         if (blockEntity.pocketIndex == -1) {
             PocketState pocketState = world.getServer().getWorld(UniverseBox.POCKET_DIMENSION).getPersistentStateManager().getOrCreate(PocketState::fromNbt, PocketState::new, "pocket_state");
@@ -103,7 +121,12 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
         createPortals(pos, state.get(FACING), blockEntity.pocketIndex, serverWorld);
     }
 
-    private void createPortals(BlockPos outerPos, Direction rotation, int pocketIndex, ServerWorld outerWorld) {
+    public static boolean canBeOpen(World world, BlockPos pos){
+        pos = pos.down();
+        return world.getBlockState(pos).isSideSolidFullSquare(world, pos, Direction.UP);
+    }
+
+    static private void createPortals(BlockPos outerPos, Direction rotation, int pocketIndex, ServerWorld outerWorld) {
         //Create link to pocket dimension
         ServerWorld innerWorld = outerWorld.getServer().getWorld(UniverseBox.POCKET_DIMENSION);
 
@@ -141,13 +164,14 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
             }
         }
 
-        int ipX = 8+x*64;
+        int ipX = x*64;
         int ipY = 63;
-        int ipZ = 8+z*64;
+        int ipZ = z*64;
 
         //Create portals
-        Vec3d outerPortalPos = new Vec3d(outerPos.getX()+0.5, outerPos.getY()+0.5, outerPos.getZ()+0.5);
-        Vec3d innerPortalPos = new Vec3d(ipX+0.5, ipY+0.5, ipZ+0.5);
+        double height = 0.5;
+        Vec3d outerPortalPos = new Vec3d(outerPos.getX()+0.5, outerPos.getY()+height, outerPos.getZ()+0.5);
+        Vec3d innerPortalPos = new Vec3d(ipX+0.5, ipY+height, ipZ+0.5);
 
         //Create outer portal
         DependentPortal outerPortal = UniverseBox.DEPENDENT_PORTAL.create(outerWorld);
@@ -177,7 +201,7 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
         );
         innerPortal.setRotationTransformation(new Quaternion(Vec3f.NEGATIVE_Y, rotation.asRotation(),true));
         innerPortal.setup(outerPos, outerDimension, pocketIndex);
-        innerPortal.setInteractable(false);
+        innerPortal.setInteractable(true);
         innerPortal.world.spawnEntity(innerPortal);
     }
 
@@ -208,13 +232,13 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
         NbtCompound nbtCompound = BlockItem.getBlockEntityNbt(stack);
         if (nbtCompound != null) {
             if (nbtCompound.contains("PocketIndex")) {
-                MutableText mutableText = new LiteralText("#").formatted(Formatting.GRAY);
+                MutableText mutableText = Text.literal("#").formatted(Formatting.GRAY);
                 mutableText.append(String.valueOf(nbtCompound.getInt("PocketIndex")));
                 tooltip.add(mutableText);
                 return;
             }
         }
-        MutableText mutableText = new LiteralText("Unopened").formatted(Formatting.GRAY);
+        MutableText mutableText = Text.literal("Unopened").formatted(Formatting.GRAY);
         tooltip.add(mutableText);
     }
 
