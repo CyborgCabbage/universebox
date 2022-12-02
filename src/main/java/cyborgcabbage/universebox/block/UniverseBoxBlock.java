@@ -43,6 +43,8 @@ import java.util.List;
 public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final BooleanProperty OPEN = Properties.OPEN;
     private static final VoxelShape BLOCK_SHAPE = VoxelShapes.combineAndSimplify(VoxelShapes.fullCube(), Block.createCuboidShape(1.0, 1.0, 1.0, 15.0, 16.0, 15.0), BooleanBiFunction.ONLY_FIRST);
+    private static final VoxelShape CHECK_SHAPE = Block.createCuboidShape(7,7,7,9,9,9);
+
     public UniverseBoxBlock(Settings settings) {
         super(settings);
         setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(OPEN, false));
@@ -123,7 +125,8 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
 
     public static boolean canBeOpen(World world, BlockPos pos){
         pos = pos.down();
-        return world.getBlockState(pos).isSideSolidFullSquare(world, pos, Direction.UP);
+        VoxelShape collisionShape = world.getBlockState(pos).getCollisionShape(world, pos);
+        return VoxelShapes.matchesAnywhere(collisionShape, CHECK_SHAPE, BooleanBiFunction.AND);
     }
 
     static private void createPortals(BlockPos outerPos, Direction rotation, int pocketIndex, ServerWorld outerWorld) {
