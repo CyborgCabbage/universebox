@@ -54,7 +54,11 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext context) {
-        return BLOCK_SHAPE;
+        if(state.get(OPEN)) {
+            return BLOCK_SHAPE;
+        }else{
+            return VoxelShapes.fullCube();
+        }
     }
 
     @Override
