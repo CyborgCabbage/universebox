@@ -185,7 +185,7 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
         );
         innerPortal.setRotationTransformation(new Quaternion(Vec3f.NEGATIVE_Y, rotation.asRotation(),true));
         innerPortal.setup(outerPos, outerDimension, pocketIndex);
-        innerPortal.setInteractable(true);
+        innerPortal.setInteractable(false);
         innerPortal.world.spawnEntity(innerPortal);
     }
 
