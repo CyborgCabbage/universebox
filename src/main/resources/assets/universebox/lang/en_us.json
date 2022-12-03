@@ -2,5 +2,6 @@
   "block.universebox.universe_box": "Universe Box",
   "block.universebox.universe_box_opposite": "Universe Box Opposite",
   "block.universebox.reality_wall": "Reality Wall",
-  "block.universebox.universe_box.cannot_open": "Box must be on solid ground"
+  "block.universebox.universe_box.cannot_open": "Universe Box must be on solid ground to open",
+  "block.universebox.universe_box.cannot_close": "Cannot close Universe Box from here"
 }

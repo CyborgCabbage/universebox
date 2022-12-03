@@ -38,6 +38,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEntityProvider {
@@ -72,6 +73,20 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if(world.isClient) return ActionResult.SUCCESS;
+        UniverseBoxBlockEntity blockEntity = (UniverseBoxBlockEntity) world.getBlockEntity(pos);
+        if(blockEntity == null) return ActionResult.CONSUME;
+        if(state.get(OPEN)){
+            BlockPos portalPosition = getPortalPosition(blockEntity.pocketIndex);
+            Box box = Box.from(Vec3d.of(portalPosition)).withMinY(0).expand(31,0,31);
+            List<PlayerEntity> players = world.getServer().getWorld(UniverseBox.POCKET_DIMENSION).getEntitiesByClass(PlayerEntity.class, box, p -> p.getUuid() == player.getUuid());
+            boolean intersectsBlock = player.getBoundingBox().intersects(Box.from(Vec3d.of(pos)));
+            if(!players.isEmpty() || intersectsBlock){
+                player.sendMessage(Text.translatable("block.universebox.universe_box.cannot_close"), true);
+                world.playSound(null, pos, SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.f, 1.f);
+                return ActionResult.CONSUME;
+            }
+        }
+
         //Attempt to open if closed
         if(!canBeOpen(world, pos) && !state.get(OPEN)){
             player.sendMessage(Text.translatable("block.universebox.universe_box.cannot_open"), true);
@@ -136,45 +151,11 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
         RegistryKey<World> innerDimension = UniverseBox.POCKET_DIMENSION;
         RegistryKey<World> outerDimension = outerWorld.getRegistryKey();
 
-        //Get pocket coordinates
-        int x = 0;
-        int z = 0;
-        if(pocketIndex != 0) {
-            int rIndex = (int) Math.ceil(Math.floor(Math.sqrt(pocketIndex)) / 2.0);
-            int rSize = rIndex * 2 + 1;
-            int rArea = rIndex * 8;
-            int rLess = (rSize - 2) * (rSize - 2);
-            int rOffset = pocketIndex - rLess;
-            int rSide = rOffset / (rArea/4);
-            int rSideOffset = rOffset % (rArea/4);
-            switch(rSide){
-                case 0 -> {
-                    x = rIndex;
-                    z = rSideOffset-rIndex;
-                }
-                case 1 -> {
-                    z = rIndex;
-                    x = rIndex-rSideOffset;
-                }
-                case 2 -> {
-                    x = -rIndex;
-                    z = rIndex-rSideOffset;
-                }
-                case 3 -> {
-                    z = -rIndex;
-                    x = rSideOffset-rIndex;
-                }
-            }
-        }
-
-        int ipX = x*64;
-        int ipY = 63;
-        int ipZ = z*64;
-
+        BlockPos innerPos = getPortalPosition(pocketIndex);
         //Create portals
         double height = 0.5;
         Vec3d outerPortalPos = new Vec3d(outerPos.getX()+0.5, outerPos.getY()+height, outerPos.getZ()+0.5);
-        Vec3d innerPortalPos = new Vec3d(ipX+0.5, ipY+height, ipZ+0.5);
+        Vec3d innerPortalPos = new Vec3d(innerPos.getX()+0.5, innerPos.getY()+height, innerPos.getZ()+0.5);
 
         //Create outer portal
         DependentPortal outerPortal = UniverseBox.DEPENDENT_PORTAL.create(outerWorld);
@@ -206,6 +187,40 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
         innerPortal.setup(outerPos, outerDimension, pocketIndex);
         innerPortal.setInteractable(true);
         innerPortal.world.spawnEntity(innerPortal);
+    }
+
+    private static BlockPos getPortalPosition(int pocketIndex) {
+        int x = 0;
+        int z = 0;
+        if(pocketIndex != 0) {
+            int rIndex = (int) Math.ceil(Math.floor(Math.sqrt(pocketIndex)) / 2.0);
+            int rSize = rIndex * 2 + 1;
+            int rArea = rIndex * 8;
+            int rLess = (rSize - 2) * (rSize - 2);
+            int rOffset = pocketIndex - rLess;
+            int rSide = rOffset / (rArea/4);
+            int rSideOffset = rOffset % (rArea/4);
+            switch(rSide){
+                case 0 -> {
+                    x = rIndex;
+                    z = rSideOffset-rIndex;
+                }
+                case 1 -> {
+                    z = rIndex;
+                    x = rIndex-rSideOffset;
+                }
+                case 2 -> {
+                    x = -rIndex;
+                    z = rIndex-rSideOffset;
+                }
+                case 3 -> {
+                    z = -rIndex;
+                    x = rSideOffset-rIndex;
+                }
+            }
+        }
+
+        return new BlockPos(x*64, 63, z*64);
     }
 
     @Override
