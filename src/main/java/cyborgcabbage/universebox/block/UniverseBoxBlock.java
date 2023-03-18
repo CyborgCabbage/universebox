@@ -30,15 +30,15 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
-import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
+import org.joml.Quaterniond;
+import qouteall.q_misc_util.my_util.DQuaternion;
 import java.util.List;
 
 public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEntityProvider {
@@ -168,7 +168,12 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
                 7.0/8.0, // width
                 7.0/8.0 // height
         );
-        outerPortal.setRotationTransformation(new Quaternion(Vec3f.POSITIVE_Y, rotation.asRotation(),true));
+        outerPortal.setRotationTransformationD(
+                DQuaternion.fromMcQuaternion(new Quaterniond().fromAxisAngleDeg(
+                        0,
+                        1,
+                        0,
+                        rotation.asRotation())));
         outerPortal.setup(outerPos, outerDimension, pocketIndex);
         outerPortal.world.spawnEntity(outerPortal);
 
@@ -183,7 +188,12 @@ public class UniverseBoxBlock extends HorizontalFacingBlock implements BlockEnti
                 7.0/8.0, // width
                 7.0/8.0 // height
         );
-        innerPortal.setRotationTransformation(new Quaternion(Vec3f.NEGATIVE_Y, rotation.asRotation(),true));
+        innerPortal.setRotationTransformationD(
+                DQuaternion.fromMcQuaternion(new Quaterniond().fromAxisAngleDeg(
+                        0,
+                        -1,
+                        0,
+                        rotation.asRotation())));
         innerPortal.setup(outerPos, outerDimension, pocketIndex);
         innerPortal.setInteractable(false);
         innerPortal.world.spawnEntity(innerPortal);

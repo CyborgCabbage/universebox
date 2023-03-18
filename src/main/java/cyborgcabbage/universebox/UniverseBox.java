@@ -6,6 +6,7 @@ import cyborgcabbage.universebox.block.entity.UniverseBoxBlockEntity;
 import cyborgcabbage.universebox.portal.DependentPortal;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -18,14 +19,16 @@ import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.loot.LootPool;
 import net.minecraft.loot.LootTables;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,10 +42,10 @@ public class UniverseBox implements ModInitializer {
     public static final Block UNIVERSE_BOX_BLOCK = new UniverseBoxBlock(FabricBlockSettings.of(Material.METAL).strength(2.0f).luminance(state -> 10));
     public static BlockEntityType<UniverseBoxBlockEntity> UNIVERSE_BOX_BLOCK_ENTITY;
 
-    public static final RegistryKey<World> POCKET_DIMENSION = RegistryKey.of(Registry.WORLD_KEY, id("pocket_dimension"));
+    public static final RegistryKey<World> POCKET_DIMENSION = RegistryKey.of(RegistryKeys.WORLD, id("pocket_dimension"));
 
     public static final EntityType<DependentPortal> DEPENDENT_PORTAL = Registry.register(
-        Registry.ENTITY_TYPE,
+        Registries.ENTITY_TYPE,
         id( "dependent_portal"),
         FabricEntityTypeBuilder.create(SpawnGroup.MISC, DependentPortal::new)
                 .dimensions(new EntityDimensions(1, 1, true))
@@ -58,15 +61,18 @@ public class UniverseBox implements ModInitializer {
     @Override
     public void onInitialize() {
         //Universe Box Block
-        Registry.register(Registry.BLOCK, id( "universe_box"), UNIVERSE_BOX_BLOCK);
-        Registry.register(Registry.ITEM, id( "universe_box"), new BlockItem(UNIVERSE_BOX_BLOCK, new FabricItemSettings().maxCount(1).group(ItemGroup.MISC)));
-        UNIVERSE_BOX_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "universebox:universe_box_block_entity", FabricBlockEntityTypeBuilder.create(UniverseBoxBlockEntity::new, UNIVERSE_BOX_BLOCK).build(null));
+        Registry.register(Registries.BLOCK, id( "universe_box"), UNIVERSE_BOX_BLOCK);
+        BlockItem UNIVERSE_BOX_BLOCK_ITEM = new BlockItem(UNIVERSE_BOX_BLOCK, new FabricItemSettings().maxCount(1));
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> entries.add(UNIVERSE_BOX_BLOCK_ITEM));
+
+        Registry.register(Registries.ITEM, id( "universe_box"), UNIVERSE_BOX_BLOCK_ITEM);
+        UNIVERSE_BOX_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, "universebox:universe_box_block_entity", FabricBlockEntityTypeBuilder.create(UniverseBoxBlockEntity::new, UNIVERSE_BOX_BLOCK).build(null));
         //Reality Wall Block
-        Registry.register(Registry.BLOCK, id( "reality_wall"), REALITY_WALL_BLOCK);
-        Registry.register(Registry.ITEM, id( "reality_wall"), new BlockItem(REALITY_WALL_BLOCK, new FabricItemSettings()));
+        Registry.register(Registries.BLOCK, id( "reality_wall"), REALITY_WALL_BLOCK);
+        Registry.register(Registries.ITEM, id( "reality_wall"), new BlockItem(REALITY_WALL_BLOCK, new FabricItemSettings()));
         //Universe Box Opposite Block
-        Registry.register(Registry.BLOCK, id( "universe_box_opposite"), UNIVERSE_BOX_OPPOSITE_BLOCK);
-        Registry.register(Registry.ITEM, id( "universe_box_opposite"), new BlockItem(UNIVERSE_BOX_OPPOSITE_BLOCK, new FabricItemSettings()));
+        Registry.register(Registries.BLOCK, id( "universe_box_opposite"), UNIVERSE_BOX_OPPOSITE_BLOCK);
+        Registry.register(Registries.ITEM, id( "universe_box_opposite"), new BlockItem(UNIVERSE_BOX_OPPOSITE_BLOCK, new FabricItemSettings()));
 
         //Loot Tables
         LootTableEvents.MODIFY.register((resourceManager, lootManager, id, table, source) -> {
