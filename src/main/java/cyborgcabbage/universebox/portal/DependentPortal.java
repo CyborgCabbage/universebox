@@ -59,8 +59,8 @@ public class DependentPortal extends Portal {
                     portalInvalid = true;
                     return;
                 }
-                if(!UniverseBoxBlock.canBeOpen(world, blockPos)){
-                    UniverseBoxBlock.cycleBoxState(world, blockPos, null);
+                if(!UniverseBoxBlock.canBeOpen(parentWorld, blockPos)){
+                    UniverseBoxBlock.cycleBoxState(parentWorld, blockPos, null);
                     portalInvalid = true;
                     return;
                 }
