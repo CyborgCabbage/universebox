@@ -1,3 +1,4 @@
+This mod will not be developed or updated further, it relied on obscure edge case behaviour in immersive portals and supporting that would be putting an unfair burden on Quoteall.
 # Universe Box
 A mod that adds pocket dimensions for Minecraft 1.18.1 (Fabric)
 
